@@ -1,12 +1,17 @@
 package com.cst438.controllers;
 
+import java.sql.Date;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -154,6 +159,57 @@ public class GradeBookController {
 			assignmentGradeRepository.save(ag);
 		}
 		
+	}
+	
+	//delete base of Id
+	@DeleteMapping("/assignment/delete/{id}")
+	@Transactional
+	public void deleteAssignment ( @PathVariable("id") Integer assignmentId ) {
+	//stub for delete base of Id
+	}
+		
+
+	
+	
+	//create new assignment
+	@PutMapping("/assignment/new/{name}/{yyyy-mm-dd}")
+	@Transactional
+	public void newAssignment (@PathVariable("name") String name , @PathVariable("yyyy-mm-dd") String dateString ) throws ParseException {
+		
+		String email = "dwisneski@csumb.edu";  // user name (should be instructor's email) 
+		
+		Assignment assignmentNew = new Assignment();
+		assignmentNew.setName(name);
+		
+		//convert date
+		Date date=Date.valueOf(dateString);
+		
+		//set date
+		assignmentNew.setDueDate(date);
+		
+		//just a test 
+		
+		//update repository
+		assignmentNew = assignmentRepository.save(assignmentNew);
+
+		}
+	
+	//change the name for a course
+	@PutMapping("/assignment/rename/{id}/{rename}")
+	@Transactional
+	public void renameAssignment (@PathVariable("id") Integer assignmentId, @PathVariable("rename") String rename ) {
+				
+		String email = "dwisneski@csumb.edu";  // user name (should be instructor's email) 
+		checkAssignment(assignmentId, email);  // check that user name matches instructor email of the course.
+		
+		//get assignment from the repository
+		Assignment assignment = assignmentRepository.findById(assignmentId).orElse(null);
+
+		//set the name
+		assignment.setName(rename);
+		
+		//save the assignment
+        assignmentRepository.save(assignment);
 	}
 	
 	private Assignment checkAssignment(int assignmentId, String email) {
