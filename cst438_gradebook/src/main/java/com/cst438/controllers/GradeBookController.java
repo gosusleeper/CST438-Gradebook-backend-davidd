@@ -165,20 +165,45 @@ public class GradeBookController {
 	@DeleteMapping("/assignment/delete/{id}")
 	@Transactional
 	public void deleteAssignment ( @PathVariable("id") Integer assignmentId ) {
-	//stub for delete base of Id
+		
+		//catch error
+		
+		//get assignment from the repository
+		Assignment assignment = assignmentRepository.findById(assignmentId).orElse(null);
+
+		if (assignment == null) {
+			throw new ResponseStatusException( HttpStatus.BAD_REQUEST, "Invalid assignment id. "+assignmentId);
+		}
+		
+		//if assignment doesn't need grading throw error
+		if (assignment.getNeedsGrading()==0) {
+			throw new ResponseStatusException( HttpStatus.BAD_REQUEST, "Invalid assignment id. "+assignmentId);
+		}
+
+		// try to delete
+		assignmentRepository.deleteById(assignmentId);
 	}
 		
-
-	
 	
 	//create new assignment
-	@PutMapping("/assignment/new/{name}/{yyyy-mm-dd}")
+	// assignment name, course id, date
+	@PostMapping("/assignment/new/{name}/{course_id}/{yyyy-mm-dd}")
 	@Transactional
-	public void newAssignment (@PathVariable("name") String name , @PathVariable("yyyy-mm-dd") String dateString ) throws ParseException {
+	public void newAssignment (@PathVariable("name") String name , @PathVariable("course_id") Integer courseID, @PathVariable("yyyy-mm-dd") String dateString ) throws ParseException {
 		
 		String email = "dwisneski@csumb.edu";  // user name (should be instructor's email) 
 		
+		//create new assignment
 		Assignment assignmentNew = new Assignment();
+		
+		//get course or null
+		Course aCourse = courseRepository.findById(courseID).orElse(null);
+		
+		//if null throw an error
+		if (aCourse == null) {
+			throw new ResponseStatusException( HttpStatus.BAD_REQUEST, "Invalid course number. "+courseID);
+		}
+		
 		assignmentNew.setName(name);
 		
 		//convert date
@@ -187,12 +212,16 @@ public class GradeBookController {
 		//set date
 		assignmentNew.setDueDate(date);
 		
-		//just a test 
+		//set Course
+	    assignmentNew.setCourse(aCourse);
 		
 		//update repository
 		assignmentNew = assignmentRepository.save(assignmentNew);
 
 		}
+	//put updating that exist, post creating something new
+	
+	//switch dashes to underscores if errors
 	
 	//change the name for a course
 	@PutMapping("/assignment/rename/{id}/{rename}")
@@ -205,6 +234,10 @@ public class GradeBookController {
 		//get assignment from the repository
 		Assignment assignment = assignmentRepository.findById(assignmentId).orElse(null);
 
+		if (assignment == null) {
+			throw new ResponseStatusException( HttpStatus.BAD_REQUEST, "Invalid assignment id. "+assignmentId);
+		}
+		
 		//set the name
 		assignment.setName(rename);
 		
