@@ -410,6 +410,134 @@ public class JunitTestGradebook {
 		assertEquals(400, response.getStatus());
 	}
 	
+	@Test
+	//should fail no assignment exists
+	public void rename() throws Exception {
+
+		MockHttpServletResponse response;
+
+		// mock database data
+
+		Course course = new Course();
+		course.setCourse_id(TEST_COURSE_ID);
+		course.setSemester(TEST_SEMESTER);
+		course.setYear(TEST_YEAR);
+		course.setInstructor(TEST_INSTRUCTOR_EMAIL);
+		course.setEnrollments(new java.util.ArrayList<Enrollment>());
+		course.setAssignments(new java.util.ArrayList<Assignment>());
+
+		Enrollment enrollment = new Enrollment();
+		enrollment.setCourse(course);
+		course.getEnrollments().add(enrollment);
+		enrollment.setId(TEST_COURSE_ID);
+		enrollment.setStudentEmail(TEST_STUDENT_EMAIL);
+		enrollment.setStudentName(TEST_STUDENT_NAME);
+
+		Assignment assignment = new Assignment();
+		assignment.setCourse(course);
+		course.getAssignments().add(assignment);
+		// set dueDate to 1 week before now.
+		assignment.setDueDate(new java.sql.Date(System.currentTimeMillis() - 7 * 24 * 60 * 60 * 1000));
+		assignment.setId(1);
+		assignment.setName("Assignment 1");
+		//needs grading is zero so it should fail because it has existing grades
+		assignment.setNeedsGrading(0);
+
+		AssignmentGrade ag = new AssignmentGrade();
+		ag.setAssignment(assignment);
+		ag.setId(1);
+		ag.setScore("");
+		ag.setStudentEnrollment(enrollment);
+
+		// given -- stubs for database repositories that return test data
+		given(assignmentRepository.findById(1)).willReturn(Optional.of(assignment));
+		given(assignmentGradeRepository.findByAssignmentIdAndStudentEmail(1, TEST_STUDENT_EMAIL)).willReturn(null);
+		given(assignmentGradeRepository.save(any())).willReturn(ag);
+
+		//end mock data
+		
+		//rename number 1
+		response = mvc.perform(MockMvcRequestBuilders.put("/assignment/rename/1/david").accept(MediaType.APPLICATION_JSON))
+				.andReturn().getResponse();
+
+		// verify success
+		assertEquals(200, response.getStatus());
+		
+		//enter invalid id
+		response = mvc.perform(MockMvcRequestBuilders.put("/assignment/rename/99/david").accept(MediaType.APPLICATION_JSON))
+				.andReturn().getResponse();
+
+		// should return invalid
+		assertEquals(400, response.getStatus());
+	}
+	
+	@Test
+	//should fail no assignment exists
+	public void newAssignment() throws Exception {
+
+		MockHttpServletResponse response;
+
+		// mock database data
+
+		Course course = new Course();
+		course.setCourse_id(TEST_COURSE_ID);
+		course.setSemester(TEST_SEMESTER);
+		course.setYear(TEST_YEAR);
+		course.setInstructor(TEST_INSTRUCTOR_EMAIL);
+		course.setEnrollments(new java.util.ArrayList<Enrollment>());
+		course.setAssignments(new java.util.ArrayList<Assignment>());
+
+		Enrollment enrollment = new Enrollment();
+		enrollment.setCourse(course);
+		course.getEnrollments().add(enrollment);
+		enrollment.setId(TEST_COURSE_ID);
+		enrollment.setStudentEmail(TEST_STUDENT_EMAIL);
+		enrollment.setStudentName(TEST_STUDENT_NAME);
+
+		Assignment assignment = new Assignment();
+		assignment.setCourse(course);
+		course.getAssignments().add(assignment);
+		// set dueDate to 1 week before now.
+		assignment.setDueDate(new java.sql.Date(System.currentTimeMillis() - 7 * 24 * 60 * 60 * 1000));
+		assignment.setId(1);
+		assignment.setName("Assignment 1");
+		//needs grading is zero so it should fail because it has existing grades
+		assignment.setNeedsGrading(0);
+
+		AssignmentGrade ag = new AssignmentGrade();
+		ag.setAssignment(assignment);
+		ag.setId(1);
+		ag.setScore("");
+		ag.setStudentEnrollment(enrollment);
+
+		// given -- stubs for database repositories that return test data
+		given(assignmentRepository.findById(1)).willReturn(Optional.of(assignment));
+		given(assignmentGradeRepository.findByAssignmentIdAndStudentEmail(1, TEST_STUDENT_EMAIL)).willReturn(null);
+		given(assignmentGradeRepository.save(any())).willReturn(ag);
+		
+		//add find by id for course
+		given(courseRepository.findById(40442)).willReturn(Optional.of(course));
+		given(assignmentGradeRepository.findByAssignmentIdAndStudentEmail(1, TEST_STUDENT_EMAIL)).willReturn(null);
+		given(assignmentGradeRepository.save(any())).willReturn(ag);
+
+		//end mock data
+		
+		// rename an existing course
+		response = mvc.perform(MockMvcRequestBuilders.post("/assignment/new/test/40442/2023-03-20").accept(MediaType.APPLICATION_JSON))
+				.andReturn().getResponse();
+
+		// should return 200
+		assertEquals(200, response.getStatus());
+		
+		// rename an non-existing course
+		response = mvc.perform(MockMvcRequestBuilders.post("/assignment/new/test/99999/2023-03-20").accept(MediaType.APPLICATION_JSON))
+				.andReturn().getResponse();
+
+		// should return 400
+		assertEquals(400, response.getStatus());
+	}
+	
+	
 	private static String asJsonString(final Object obj) {
 		try {
 
