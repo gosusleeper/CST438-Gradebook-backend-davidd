@@ -44,7 +44,7 @@ public class RegistrationServiceMQ extends RegistrationService {
 	// ----- end of configuration of message queue
 
 	// receiver of messages from Registration service
-	
+	//enrollmentController.java and registrationservice rest
 	@RabbitListener(queues = "gradebook-queue")
 	@Transactional
 	public void receive(EnrollmentDTO enrollmentDTO) {
@@ -53,31 +53,20 @@ public class RegistrationServiceMQ extends RegistrationService {
 		//TODO  complete this method in homework 4
 		
 		//get message from q, get enrollment entity and save to grade book database asynchronous
-			
-		//EnrollmentDTO e = enrollmentDTO;
-		Course c = courseRepository.findById(enrollmentDTO.course_id).orElse(null);
-
-		int course_id = enrollmentDTO.course_id;
 		
-		CourseDTOG cdto = new CourseDTOG();
-		cdto.course_id = course_id;
-		cdto.grades = new ArrayList<>();
-		for (Enrollment e: c.getEnrollments()) {
-			double total=0.0;
-			int count = 0;
-			for (AssignmentGrade ag : e.getAssignmentGrades()) {
-				count++;
-				total = total + Double.parseDouble(ag.getScore());
+		//EnrollmentDTO e = enrollmentDTO;
+		Enrollment e = new Enrollment();
+			e.setStudentEmail(enrollmentDTO.studentEmail);
+			e.setStudentName(enrollmentDTO.studentName);
+			Course c = courseRepository.findById(enrollmentDTO.course_id).orElse(null);
+			if (c==null) {
+				throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Course id not found.");
 			}
-			double average = total/count;
-			CourseDTOG.GradeDTO gdto = new CourseDTOG.GradeDTO();
-			gdto.grade=letterGrade(average);
-			gdto.student_email=e.getStudentEmail();
-			gdto.student_name=e.getStudentName();
-			cdto.grades.add(gdto);
-			System.out.println("Course="+course_id+" Student="+e.getStudentEmail()+" grade="+gdto.grade);
+			e.setCourse(c);
+			e = enrollmentRepository.save(e);
 		}
-	}
+		
+	
 
 	// sender of messages to Registration Service
 	@Override
@@ -85,13 +74,39 @@ public class RegistrationServiceMQ extends RegistrationService {
 		 
 		//TODO  complete this method in homework 4
 
-		String course_id_string = Integer.toString(course_id);
-		
-		rabbitTemplate.convertAndSend( course_id_string, courseDTO);
-		
-		System.out.println("Message send to registration service for courseDTO "+ courseDTO);  
-	}
+		//String course_id_string = Integer.toString(course_id);
+		//EnrollmentDTO enrollmentDTO = new EnrollmentDTO(courseDTO., courseDTO.grades, course_id);
 
+		Course c = courseRepository.findById(course_id).orElse(null);
+		
+		CourseDTOG cdto = courseDTO;
+		cdto.course_id = course_id;
+		cdto.grades = new ArrayList<>();
+		CourseDTOG.GradeDTO gdto = new CourseDTOG.GradeDTO();
+		for (Enrollment e1: c.getEnrollments()) {
+			double total=0.0;
+			int count = 0;
+			for (AssignmentGrade ag : e1.getAssignmentGrades()) {
+				count++;
+				total = total + Double.parseDouble(ag.getScore());
+			}
+			double average = total/count;
+			gdto.grade=letterGrade(average);
+			gdto.student_email=e1.getStudentEmail();
+			gdto.student_name=e1.getStudentName();
+			cdto.grades.add(gdto);
+			
+			
+			System.out.println("Course="+course_id+" Student="+e1.getStudentEmail()+" grade="+gdto.grade);
+		}
+
+		
+		rabbitTemplate.convertAndSend(registrationQueue.getName(), courseDTO);
+		
+		System.out.println("Message send to registration service for courseDTO "+ courseDTO); 
+		
+	}
+	
 	
 	private String letterGrade(double grade) {
 		if (grade >= 90) return "A";
