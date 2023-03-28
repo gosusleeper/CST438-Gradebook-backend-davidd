@@ -50,7 +50,6 @@ public class RegistrationServiceMQ extends RegistrationService {
 	public void receive(EnrollmentDTO enrollmentDTO) {
 		
 		System.out.println("Receive enrollment :" + enrollmentDTO);
-		//TODO  complete this method in homework 4
 		
 		//get message from q, get enrollment entity and save to grade book database asynchronous
 		
@@ -77,8 +76,6 @@ public class RegistrationServiceMQ extends RegistrationService {
 	@Override
 	public void sendFinalGrades(int course_id, CourseDTOG courseDTO) {
 		 
-		//TODO  complete this method in homework 4
-
 		//String course_id_string = Integer.toString(course_id);
 		//EnrollmentDTO enrollmentDTO = new EnrollmentDTO(courseDTO., courseDTO.grades, course_id);
 
