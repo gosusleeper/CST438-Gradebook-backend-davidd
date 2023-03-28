@@ -47,7 +47,7 @@ public class RegistrationServiceMQ extends RegistrationService {
 	// receiver of messages from Registration service
 	//enrollmentController.java and registrationservice rest
 	
-	//new code below
+	//NEW CODE BELOW
 	@RabbitListener(queues = "gradebook-queue")
 	@Transactional
 	public void receive(EnrollmentDTO enrollmentDTO) {
