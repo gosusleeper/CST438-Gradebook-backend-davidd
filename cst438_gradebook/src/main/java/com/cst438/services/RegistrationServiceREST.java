@@ -18,6 +18,7 @@ public class RegistrationServiceREST extends RegistrationService {
 	}
 	
 	//NEW CODE BELOLW
+	//This is an update
 	@Override
 	public void sendFinalGrades(int course_id , CourseDTOG courseDTO) { 
 		
