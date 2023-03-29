@@ -17,7 +17,7 @@ public class RegistrationServiceREST extends RegistrationService {
 		System.out.println("REST registration service ");
 	}
 	
-	//NEW CODE BELOLW
+	//NEW CODE BELOW
 	//This is an update
 	@Override
 	public void sendFinalGrades(int course_id , CourseDTOG courseDTO) { 
